@@ -1,30 +1,32 @@
-name: Build Geode Mod
-on:
-  push:
-    branches:
-      - main
-  pull_request:
-    branches:
-      - main
-jobs:
-  build:
-    strategy:
-      fail-fast: false
-      matrix:
-        config:
-          - name: Windows
-            os: windows-2022
-            target: Win64
-          - name: Android
-            os: ubuntu-latest
-            target: Android64
-    name: ${{ matrix.config.name }}
-    runs-on: ${{ matrix.config.os }}
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Set up Android NDK
+        if: matrix.config.target == 'Android64'
+        uses: nndess/setup-ndk@v1
+        with:
+          ndk-version: r26b
+
+      - name: Setup Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.ccache
+            ~/.geode
+          key: ${{ matrix.config.target }}-${{ github.sha }}
+          restore-keys: ${{ matrix.config.target }}-
+
+      # FIX IMPLEMENTED HERE: Changed cli to false to stop the 404 API error
       - name: Build Mod
         uses: geode-sdk/build-geode-mod@main
         with:
           target: ${{ matrix.config.target }}
-          cli: true
+          cli: false
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: geode-build-${{ matrix.config.target }}
+          path: "**/*.geode"
 
