@@ -22,9 +22,8 @@ jobs:
     runs-on: ${{ matrix.config.os }}
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Geode SDK
-        uses: geode-sdk/setup-geode-sdk@main
       - name: Build Mod
         uses: geode-sdk/build-geode-mod@main
         with:
           target: ${{ matrix.config.target }}
+
