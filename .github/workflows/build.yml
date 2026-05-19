@@ -1,9 +1,38 @@
+name: Build Geode Mod
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: Windows
+            os: windows-2022
+            target: Win64
+          - name: Android 64-bit
+            os: ubuntu-latest
+            target: Android64
+          - name: Android 32-bit (S6 Lite Compatibility)
+            os: ubuntu-latest
+            target: Android32
+
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Set up Android NDK
-        if: matrix.config.target == 'Android64'
+        if: matrix.config.target == 'Android64' || matrix.config.target == 'Android32'
         uses: nndess/setup-ndk@v1
         with:
           ndk-version: r26b
@@ -17,16 +46,39 @@
           key: ${{ matrix.config.target }}-${{ github.sha }}
           restore-keys: ${{ matrix.config.target }}-
 
-      # FIX IMPLEMENTED HERE: Changed cli to false to stop the 404 API error
       - name: Build Mod
         uses: geode-sdk/build-geode-mod@main
         with:
           target: ${{ matrix.config.target }}
           cli: false
 
-      - name: Upload Artifacts
+      - name: Upload Platform Artifact
         uses: actions/upload-artifact@v4
         with:
           name: geode-build-${{ matrix.config.target }}
           path: "**/*.geode"
+
+  package:
+    name: Package Final Mod
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download All Platform Artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: platform-bins
+          pattern: geode-build-*
+          merge-multiple: true
+
+      - name: Combine Binaries Into One Mod
+        uses: geode-sdk/build-geode-mod/combine@main
+        with:
+          source: platform-bins
+          output: CosmicBowlingLounge.geode
+
+      - name: Upload Finished Mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: CosmicBowlingLounge-Final
+          path: CosmicBowlingLounge.geode
 
