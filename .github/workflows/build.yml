@@ -1,4 +1,4 @@
-      name: Build Geode Mod
+name: Build Geode Mod
 
 on:
   push:
@@ -16,19 +16,15 @@ jobs:
           - name: Windows
             os: windows-latest
             target: Win32
-
           - name: macOS
             os: macos-latest
             target: Mac
-
           - name: iOS
             os: macos-latest
             target: iOS
-
           - name: Android32
             os: ubuntu-latest
             target: Android32
-
           - name: Android64
             os: ubuntu-latest
             target: Android64
