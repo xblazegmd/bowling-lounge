@@ -12,10 +12,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        target: [Win32, Mac, Android32, Android64]
+        platform: [Win32, Mac, Android]
 
-    name: Build ${{ matrix.target }}
-    runs-on: ${{ matrix.target == 'Win32' && 'windows-latest' || matrix.target == 'Mac' && 'macos-latest' || 'ubuntu-latest' }}
+    name: Build ${{ matrix.platform }}
+    runs-on: ${{ matrix.platform == 'Win32' && 'windows-latest' || matrix.platform == 'Mac' && 'macos-latest' || 'ubuntu-latest' }}
 
     steps:
       - name: Checkout Code
@@ -24,4 +24,4 @@ jobs:
       - name: Build Mod
         uses: geode-sdk/build-geode-mod@main
         with:
-          target: ${{ matrix.target }}
+          platform: ${{ matrix.platform }}
