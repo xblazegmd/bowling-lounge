@@ -1,29 +1,38 @@
 name: Build Geode Mod
+
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
   pull_request:
-  workflow_dispatch:
+    branches: [ main ]
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        config:
+          - name: Windows
+            os: windows-latest
+          - name: macOS
+            os: macos-latest
+          - name: iOS
+            os: macos-latest
+            target: ios
+          - name: Android
+            os: ubuntu-latest
+            target: android
+
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
+
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Geode CLI and SDK
-        run: |
-          curl -L "https://github.com" -o geode-cli.zip
-          unzip geode-cli.zip -d geode-bin
-          chmod +x geode-bin/geode
-          sudo mv geode-bin/geode /usr/local/bin/geode
-          geode sdk install
-          echo "GEODE_SDK=$HOME/.geode/sdk" >> $GITHUB_ENV
-
-      - name: Build Mod with CMake
-        run: |
-          cmake -B build -DCMAKE_BUILD_TYPE=Release -DGEODE_SDK=$GEODE_SDK
-          cmake --build build --config Release
+      # This single line handles the entire cross-platform toolchain build cleanly
+      - name: Build Mod Binary
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          target: ${{ matrix.config.target }}
 
