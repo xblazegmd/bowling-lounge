@@ -14,13 +14,15 @@ jobs:
       matrix:
         config:
           - os: windows-latest
-            platform: win
+            target: Win64
           - os: macos-latest
-            platform: mac
+            target: MacOS
+          - os: macos-latest
+            target: iOS
           - os: ubuntu-latest
-            platform: android64
+            target: Android64
           - os: ubuntu-latest
-            platform: android32
+            target: Android32
 
     runs-on: ${{ matrix.config.os }}
 
@@ -34,5 +36,4 @@ jobs:
       - name: Build Mod Binary
         uses: geode-sdk/build-geode-mod@main
         with:
-          platform: ${{ matrix.config.platform }}
-
+          target: ${{ matrix.config.target }}
