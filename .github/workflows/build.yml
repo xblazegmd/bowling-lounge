@@ -33,29 +33,25 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # FIX: Force clean the directory before the setup action runs to prevent 7z overwrite prompts
+      # Fixes the 7z prompt hang by wiping the target directory first
       - name: Clean Existing CLI Directory
         run: |
           rm -rf my-epic-geode-cli
         shell: bash
 
-      # Sets up the building tools (ninja, ccache, sccache)
       - name: Setup Build Environment
         uses: hendrikmuhs/ccache-action@v1
         with:
           key: ${{ matrix.config.target }}
 
-      # Downloads and sets up the compiler tools for Geode
       - name: Setup Geode CLI
         uses: geode-sdk/cli/.github/actions/setup@main
 
-      # Builds the actual mod files for the chosen target platform
       - name: Build Mod
         uses: geode-sdk/build-geode-mod@main
         with:
           target: ${{ matrix.config.target }}
 
-  # Combines all platform builds (.dll, .so, .dylib) into a single cross-platform .geode file
   package:
     name: Package Mod
     needs: build
@@ -63,3 +59,4 @@ jobs:
     steps:
       - name: Merge Platform Builds
         uses: geode-sdk/build-geode-mod/combine@main
+
