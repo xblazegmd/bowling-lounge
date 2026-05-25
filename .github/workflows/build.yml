@@ -33,29 +33,63 @@ jobs:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # This fixes the deep internal 7z conflict by removing any pre-existing tool states
-      - name: Clean Runner Workspace Completely
-        run: |
-          rm -rf my-epic-geode-cli
-          rm -rf D:/a/bowling-lounge/bowling-lounge/my-epic-geode-cli
-        shell: bash
-        continue-on-error: true
-
-      # Setting up environment caches for CMake
+      # Sets up environment compilation caches for CMake
       - name: Setup Build Environment
         uses: hendrikmuhs/ccache-action@v1
         with:
-          key: ${{ matrix.config.target }}-v2
+          key: ${{ matrix.config.target }}-cache-v1
 
-      # FIX: We change the target path or clean it so the action doesn't double-extract into conflicts
-      - name: Setup Geode CLI
-        uses: geode-sdk/cli/.github/actions/setup@main
+      # FIX: We download the Geode CLI manually so we can pass the automatic overwrite flag
+      - name: Download Geode CLI
+        uses: robinraju/release-downloader@v1.10
         with:
-          # If the setup action supports changing the directory or forcing overwrite, we handle it here.
-          # Since it crashes on duplicates, we clear the env cache key above by changing it to v2.
-          # This forces a fresh run where duplicate zips don't exist in the cache.
-          
-      # Compiles your C++ and CMake project files
+          repository: "geode-sdk/cli"
+          latest: true
+          fileName: "*win.zip"
+          out-file-path: "my-epic-geode-cli"
+        if: matrix.config.target == 'Win64'
+
+      - name: Extract Geode CLI (Windows)
+        run: 7z x "my-epic-geode-cli/*-win.zip" "-omy-epic-geode-cli" -aoa
+        shell: bash
+        if: matrix.config.target == 'Win64'
+
+      # Downloads and sets up the tool on Linux runners (Android targets)
+      - name: Download Geode CLI (Android)
+        uses: robinraju/release-downloader@v1.10
+        with:
+          repository: "geode-sdk/cli"
+          latest: true
+          fileName: "*linux.zip"
+          out-file-path: "my-epic-geode-cli"
+        if: startsWith(matrix.config.target, 'Android')
+
+      - name: Extract Geode CLI (Android)
+        run: 7z x "my-epic-geode-cli/*-linux.zip" "-omy-epic-geode-cli" -aoa
+        shell: bash
+        if: startsWith(matrix.config.target, 'Android')
+
+      # Downloads and sets up the tool on macOS runners
+      - name: Download Geode CLI (macOS)
+        uses: robinraju/release-downloader@v1.10
+        with:
+          repository: "geode-sdk/cli"
+          latest: true
+          fileName: "*mac.zip"
+          out-file-path: "my-epic-geode-cli"
+        if: matrix.config.target == 'Mac'
+
+      - name: Extract Geode CLI (macOS)
+        run: 7z x "my-epic-geode-cli/*-mac.zip" "-omy-epic-geode-cli" -aoa
+        shell: bash
+        if: matrix.config.target == 'Mac'
+
+      # Adds the newly extracted tool directory to the system PATH environment
+      - name: Add CLI to Path
+        run: echo "${{ github.workspace }}/my-epic-geode-cli" >> $GITHUB_PATH
+        shell: bash
+
+      # Compiles your C++ and CMake project files into final binaries
       - name: Build Mod
         uses: geode-sdk/build-geode-mod@main
         with:
@@ -68,3 +102,4 @@ jobs:
     steps:
       - name: Merge Platform Builds
         uses: geode-sdk/build-geode-mod/combine@main
+
