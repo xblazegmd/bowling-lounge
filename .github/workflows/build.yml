@@ -11,19 +11,15 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        # Streamlined to only include platforms you want to support
+        # Custom-tailored to only include stable platforms
         platform: [win, mac, android]
 
-    # Geode SDK runs smoothly on standard runner environments
     runs-on: ${{ matrix.platform == 'win' && 'windows-latest' || matrix.platform == 'mac' && 'macos-latest' || 'ubuntu-latest' }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      - name: Setup Geode CLI
-        uses: geode-sdk/setup-geode@v3
-
-      - name: Build Mod
-        # This will now cleanly iterate without throwing the platform missing error
-        run: geode build --platform ${{ matrix.platform }}
+      # Using the corrected, updated Geode builder action
+      - name: Build Geode Mod
+        uses: geode-sdk/build-config@v2
