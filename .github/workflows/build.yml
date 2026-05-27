@@ -2,26 +2,28 @@ name: Build Geode Mod
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        config:
-          - name: Android
-            os: ubuntu-latest
-            target: Android
+        # Streamlined to only include platforms you want to support
+        platform: [win, mac, android]
 
-    name: ${{ matrix.config.name }}
-    runs-on: ${{ matrix.config.os }}
+    # Geode SDK runs smoothly on standard runner environments
+    runs-on: ${{ matrix.platform == 'win' && 'windows-latest' || matrix.platform == 'mac' && 'macos-latest' || 'ubuntu-latest' }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup Geode CLI
+        uses: geode-sdk/setup-geode@v3
 
       - name: Build Mod
-        uses: geode-sdk/build-geode-mod@main
-        with:
-          target: ${{ matrix.config.target }}
+        # This will now cleanly iterate without throwing the platform missing error
+        run: geode build --platform ${{ matrix.platform }}
