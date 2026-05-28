@@ -2,24 +2,28 @@ name: Build Geode Mod
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
   pull_request:
-    branches: [ main ]
 
 jobs:
   build:
     strategy:
       fail-fast: false
       matrix:
-        # Custom-tailored to only include stable platforms
-        platform: [win, mac, android]
+        config:
+          - name: Android
+            os: ubuntu-latest
+            target: Android
 
-    runs-on: ${{ matrix.platform == 'win' && 'windows-latest' || matrix.platform == 'mac' && 'macos-latest' || 'ubuntu-latest' }}
+    name: ${{ matrix.config.name }}
+    runs-on: ${{ matrix.config.os }}
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      # Using the corrected, updated Geode builder action
-      - name: Build Geode Mod
-        uses: geode-sdk/build-config@v2
+      - name: Build Mod
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          target: ${{ matrix.config.target }}
