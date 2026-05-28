@@ -1,10 +1,9 @@
-name: Build Geode Mod
+name: Build Geode Mod (Multi-Platform)
 
 on:
   push:
     branches:
-      - main
-  pull_request:
+      - '**'
 
 jobs:
   build:
@@ -12,6 +11,12 @@ jobs:
       fail-fast: false
       matrix:
         config:
+          - name: Windows
+            os: windows-latest
+            target: Windows
+          - name: macOS
+            os: macos-latest
+            target: Mac
           - name: Android
             os: ubuntu-latest
             target: Android
@@ -22,6 +27,16 @@ jobs:
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
+
+      - name: Setup Cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.ccache
+            build/vcpkg_installed
+          key: ${{ runner.os }}-geode-${{ hashFiles('**/CMakeLists.txt', '**/mod.json') }}
+          restore-keys: |
+            ${{ runner.os }}-geode-
 
       - name: Build Mod
         uses: geode-sdk/build-geode-mod@main
