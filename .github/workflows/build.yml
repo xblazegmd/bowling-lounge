@@ -35,9 +35,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-geode-
 
-      - name: Setup Geode SDK
-        uses: geode-sdk/setup-geode@v3
-
       - name: Build Mod
         uses: geode-sdk/build-geode-mod@main
         with:
