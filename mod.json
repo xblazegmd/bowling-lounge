@@ -4,11 +4,11 @@
   "version": "1.0.0",
   "name": "Cosmic Bowling Lounge",
   "developer": "Mateo18023",
-  "description": "It's a Massive Mod where you can hit the Pins & get a strike if you knock them all down. If you globed it works too! Enforces a standard 8-player lobby limit for the ultimate real-life cosmic arcade vibe.",
+  "description": "It's a Massive Mod where you can hit the Pins & get a strike if you knock them all down",
   "dependencies": {
     "dankmeme.globed2": {
       "version": ">=2.0.0",
-      "importance": "required"
+      "required": true
     }
   },
   "gd": {
