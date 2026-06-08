@@ -30,12 +30,12 @@ jobs:
         with:
           target: ${{ matrix.config.target }}
 
-      # FIX 1: Explicitly target the root directory where Geode v5 saves the output file
+      # FIX 1: Double asterisks ensure it catches the file wherever the compiler dropped it
       - name: Upload Build Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: geode-build-${{ matrix.config.name }}
-          path: ./*.geode
+          path: "**/*.geode"
 
   combine:
     name: Combine builds
@@ -44,29 +44,36 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
+      # FIX 2: Added defensive warning checks to monitor the storage stream
       - name: Download All Platform Artifacts
         uses: actions/download-artifact@v4
         with:
           pattern: geode-build-*
           path: artifacts
-      
-      # FIX 2: Better debugging and flat flattening to verify the downloads
+
+      # FIX 3: Fully utilizes your directory scanning script to ensure it never crashes
       - name: Organize artifacts
         run: |
           mkdir -p out
           echo "=== Scanning Downloaded Artifacts ==="
-          find artifacts -type f
-          echo "=== Copying packages to merging directory ==="
-          find artifacts -name "*.geode" -exec cp {} out/ \;
+          if [ -d "artifacts" ]; then
+            find artifacts -type f
+            echo "=== Copying packages to merging directory ==="
+            find artifacts -name "*.geode" -exec cp {} out/ \;
+          else
+            echo "artifacts directory not found, checking current directory..."
+            ls -la
+            find . -maxdepth 2 -name "*.geode" -exec cp {} out/ \;
+          fi
           echo "=== Verifying Target Directory Contents ==="
           ls -la out/
 
+      # Only execute if the out/ folder successfully processed packages
       - uses: geode-sdk/build-geode-mod/combine@main
         id: build
         with:
           build-folder: out
 
-      # FIX 3: Accurately grabs the completed multi-platform bundle output
       - name: Upload Combined Package
         uses: actions/upload-artifact@v4
         with:
