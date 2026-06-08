@@ -1,5 +1,10 @@
 {
   "geode": "5.7.1",
+  "gd": {
+    "win": "2.2081",
+    "mac": "2.2081",
+    "android": "2.2081"
+  },
   "id": "mateo18023.cosmic_bowling_lounge",
   "version": "1.0.0",
   "name": "Cosmic Bowling Lounge",
@@ -11,9 +16,9 @@
       "required": true
     }
   },
-  "gd": {
-    "win": "2.2081",
-    "mac": "2.2081",
-    "android": "2.2081"
+  "resources": {
+    "sprites": [
+      "resources/*.png"
+    ]
   }
 }
