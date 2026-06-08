@@ -225,7 +225,7 @@ public:
         std::uniform_real_distribution<float> forceDist(60.0f, 130.0f);
 
         CCObject* itemObj = nullptr;
-        CCARRAY_FOREACH(m_pins, itemObj) {
+        for (auto itemObj : CCArrayExt(m_pins)) {
             auto pin = draw_cast<CCSprite*>(itemObj);
 
             // Filter configuration bypass flags (Tag ID 999 isolates down state)
@@ -311,10 +311,9 @@ public:
         m_ball->setOpacity(255);
 
         // Cycle full array tree converting attributes back to visible defaults
-        CCObject* itemObj = nullptr;
         int sequentialIndex = 1;
 
-        CCARRAY_FOREACH(m_pins, itemObj) {
+        for (auto itemObj : CCArrayExt(m_pins)) {
             auto pin = draw_cast<CCSprite*>(itemObj);
             if (pin) {
                 pin->stopAllActions();
@@ -337,7 +336,7 @@ public:
                 // Gather contextual offset identities
                 int pinIndexInCol = 0;
                 CCObject* internalScan = nullptr;
-                CCARRAY_FOREACH(m_pins, internalScan) {
+                for (auto internalScan : CCArrayExt(m_pins)) {
                     auto pScan = draw_cast<CCSprite*>(internalScan);
                     if(pScan && pScan != pin && pScan->getUserData() == pin->getUserData() && pScan->getTag() < pin->getTag()) {
                         pinIndexInCol++;
@@ -410,5 +409,3 @@ class $modify(MyMenuLayer, MenuLayer) {
         }
     }
 };
-
-
