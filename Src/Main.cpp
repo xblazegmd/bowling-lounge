@@ -7,6 +7,17 @@ using namespace geode::prelude;
 // Custom layer handling the game engine logic, textures, and interface
 // I'd recommend you put this in it's own dedicated .hpp file to make main.cpp less cluttered -xblaze
 class CosmicAlleyLayer : public CCLayer {
+public:
+    // Standard Cocos2d-x Layer Memory Allocator
+    static CosmicAlleyLayer* create() {
+        auto ret = new CosmicAlleyLayer();
+        if (ret && ret->init()) {
+            ret->autorelease();
+            return ret;
+        }
+        CC_SAFE_DELETE(ret);
+        return nullptr;
+    }
 protected:
     // Game Object Node pointers
     CCSprite* m_ball = nullptr;
@@ -25,18 +36,6 @@ protected:
 
     // Original spatial coordinates for game state resets
     CCPoint m_ballStartPos;
-
-public:
-    // Standard Cocos2d-x Layer Memory Allocator
-    static CosmicAlleyLayer* create() {
-        auto ret = new CosmicAlleyLayer();
-        if (ret && ret->init()) {
-            ret->autorelease();
-            return ret;
-        }
-        CC_SAFE_DELETE(ret);
-        return nullptr;
-    }
 
     // Secondary setup layer initialization routing
     bool init() override {
