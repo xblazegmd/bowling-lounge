@@ -5,12 +5,13 @@
 using namespace geode::prelude;
 
 // Custom layer handling the game engine logic, textures, and interface
+// I'd recommend you put this in it's own dedicated .hpp file to make main.cpp less cluttered -xblaze
 class CosmicAlleyLayer : public CCLayer {
 protected:
     // Game Object Node pointers
     CCSprite* m_ball = nullptr;
     CCArray* m_pins = nullptr;
-    
+
     // UI Label Element pointers
     CCLabelBMFont* m_scoreLabel = nullptr;
     CCLabelBMFont* m_pinsDownLabel = nullptr;
@@ -21,7 +22,7 @@ protected:
     int m_score = 0;
     int m_pinsDownCount = 0;
     int m_streakCount = 0;
-    
+
     // Original spatial coordinates for game state resets
     CCPoint m_ballStartPos;
 
@@ -69,7 +70,7 @@ public:
         if (lane) {
             lane->setPosition({winSize.width / 2, winSize.height / 2});
             lane->setRotation(90.0f); // Rotates horizontal to span the side-view lane
-            
+
             float scaleX = winSize.width / lane->getContentSize().height;
             float scaleY = (winSize.height * 0.6f) / lane->getContentSize().width;
             lane->setScaleX(scaleX);
@@ -147,7 +148,7 @@ public:
     // Array Generation Logic mapping specific side-view coordinate blocks
     void setupBowlingPins() {
         auto winSize = CCDirector::sharedDirector()->getWinSize();
-        
+
         // Pin layout entry coordinates
         float tipX = winSize.width - 220; 
         float centerY = winSize.height / 2;
@@ -160,20 +161,20 @@ public:
         // Nested loops allocating 4 columns to create the 10-pin block (1+2+3+4)
         for (int col = 0; col < 4; ++col) {
             float columnStartY = centerY + (col * pinSpacingY / 2.0f);
-            
+
             for (int row = 0; row <= col; ++row) {
                 auto pin = CCSprite::createWithSpriteFrameName("yourname.bowling_mod/alley_pins.png");
                 if (pin) {
                     pin->setScale(0.35f); 
-                    
+
                     // Apply programmatic mapping algorithm
                     float currentX = tipX + (col * rowSpacingX);
                     float currentY = columnStartY - (row * pinSpacingY);
-                    
+
                     pin->setPosition({currentX, currentY});
                     pin->setUserData(reinterpret_cast<void*>(uintptr_t(currentX))); // Save origin X coordinate safely
                     pin->setTag(targetTagId); // Keep standard tag identities clean
-                    
+
                     this->addChild(pin, 2);
                     m_pins->addObject(pin);
                     targetTagId++;
@@ -195,7 +196,7 @@ public:
         // Movement action maps spanning the full floor length out-of-bounds
         auto moveAction = CCMoveTo::create(1.5f, ccp(winSize.width + 120, winSize.height / 2));
         auto rotateAction = CCRotateBy::create(1.5f, 1080.0f); // Fast linear spin rate
-        
+
         auto resetCall = CCCallFunc::create(this, callfunc_selector(CosmicAlleyLayer::evaluateFrameResults));
         auto sequence = CCSequence::create(moveAction, resetCall, nullptr);
 
@@ -226,7 +227,7 @@ public:
         CCObject* itemObj = nullptr;
         CCARRAY_FOREACH(m_pins, itemObj) {
             auto pin = draw_cast<CCSprite*>(itemObj);
-            
+
             // Filter configuration bypass flags (Tag ID 999 isolates down state)
             if (!pin || pin->getTag() == 999) continue;
 
@@ -241,170 +242,173 @@ public:
                 FMODAudioEngine::sharedEngine()->playEffect("hitSpikes.ogg", 0.8f, 0.0f, 1.0f);
 
                 // Advanced trajectory math algorithms
-float randomAngle = angleDist(gen);
-float randomForce = forceDist(gen);
+                float randomAngle = angleDist(gen);
+                float randomForce = forceDist(gen);
 
-// Create a simulated gravity arc using physics vectors
-auto launchBack = CCMoveBy::create(0.5f, ccp(randomForce, randomAngle));
-auto rotationSpin = CCRotateBy::create(0.5f, randomForce * 3.0f);
-auto fadeOutEffect = CCFadeOut::create(0.5f);
+                // Create a simulated gravity arc using physics vectors
+                auto launchBack = CCMoveBy::create(0.5f, ccp(randomForce, randomAngle));
+                auto rotationSpin = CCRotateBy::create(0.5f, randomForce * 3.0f);
+                auto fadeOutEffect = CCFadeOut::create(0.5f);
 
-// Package actions concurrently inside spawn sequences
-pin->runAction(CCSpawn::create(launchBack, rotationSpin, fadeOutEffect, nullptr));
-}
-}
-}
+                // Package actions concurrently inside spawn sequences
+                pin->runAction(CCSpawn::create(launchBack, rotationSpin, fadeOutEffect, nullptr));
+            }
+        }
+    }
 
-// Compiles framework scores before generating scene layout reloads
-void evaluateFrameResults() {
-if (m_pinsDownCount >= 10) {
-// Absolute strike accomplishment configuration routing
-m_score += 500;
-m_streakCount++;
-FMODAudioEngine::sharedEngine()->playEffect("achievement_01.ogg", 1.0f, 0.0f, 1.0f);
+    // Compiles framework scores before generating scene layout reloads
+    void evaluateFrameResults() {
+        if (m_pinsDownCount >= 10) {
+            // Absolute strike accomplishment configuration routing
+            m_score += 500;
+            m_streakCount++;
+            FMODAudioEngine::sharedEngine()->playEffect("achievement_01.ogg", 1.0f, 0.0f, 1.0f);
 
-auto strikeNotice = CCLabelBMFont::create("STRIKE !!", "goldFont.fnt");
-strikeNotice->setPosition(CCDirector::sharedDirector()->getWinSize() / 2);
-strikeNotice->setScale(1.5f);
-this->addChild(strikeNotice, 4);
+            auto strikeNotice = CCLabelBMFont::create("STRIKE !!", "goldFont.fnt");
+            strikeNotice->setPosition(CCDirector::sharedDirector()->getWinSize() / 2);
+            strikeNotice->setScale(1.5f);
+            this->addChild(strikeNotice, 4);
 
-strikeNotice->runAction(CCSequence::create(
-CCScaleTo::create(0.3f, 2.0f),
-CCFadeOut::create(0.5f),
-CCRemoveSelf::create(),
-nullptr
-));
-} else if (m_pinsDownCount > 0) {
-// Standard point conversion distributions
-m_score += (m_pinsDownCount * 30);
-m_streakCount = 0; // Reset consecutive combo chain
-} else {
-// Gutter execution exception handling
-m_streakCount = 0;
-FMODAudioEngine::sharedEngine()->playEffect("explode_11.ogg", 0.7f, 0.0f, 1.0f);
-}
+            strikeNotice->runAction(CCSequence::create(
+                CCScaleTo::create(0.3f, 2.0f),
+                CCFadeOut::create(0.5f),
+                CCRemoveSelf::create(),
+                nullptr
+            ));
+        } else if (m_pinsDownCount > 0) {
+            // Standard point conversion distributions
+            m_score += (m_pinsDownCount * 30);
+            m_streakCount = 0; // Reset consecutive combo chain
+        } else {
+            // Gutter execution exception handling
+            m_streakCount = 0;
+            FMODAudioEngine::sharedEngine()->playEffect("explode_11.ogg", 0.7f, 0.0f, 1.0f);
+        }
 
-// Apply updated values across operational labels
-m_scoreLabel->setString(fmt::format("SCORE: {:04d}", m_score).c_str());
-m_streakLabel->setString(fmt::format("STREAK: {}", m_streakCount).c_str());
+        // Apply updated values across operational labels
+        m_scoreLabel->setString(fmt::format("SCORE: {:04d}", m_score).c_str());
+        m_streakLabel->setString(fmt::format("STREAK: {}", m_streakCount).c_str());
 
-// Process final room variable system reset
-this->runAction(CCSequence::create(
-CCDelayTime::create(0.6f),
-CCCallFunc::create(this, callfunc_selector(CosmicAlleyLayer::resetGame)),
-nullptr
-));
-}
+        // Process final room variable system reset
+        this->runAction(CCSequence::create(
+            CCDelayTime::create(0.6f),
+            CCCallFunc::create(this, callfunc_selector(CosmicAlleyLayer::resetGame)),
+            nullptr
+        ));
+    }
 
-// Flushes animation instances and resets positions
-void resetGame() {
-m_isRolling = false;
-m_pinsDownCount = 0;
+    // Flushes animation instances and resets positions
+    void resetGame() {
+        m_isRolling = false;
+        m_pinsDownCount = 0;
 
-// Direct assignment targeting original configuration positions
-m_pinsDownLabel->setString("PINS DOWN: 0");
+        // Direct assignment targeting original configuration positions
+        m_pinsDownLabel->setString("PINS DOWN: 0");
 
-m_ball->stopAllActions();
-m_ball->setPosition(m_ballStartPos);
-m_ball->setRotation(0);
-m_ball->setOpacity(255);
+        m_ball->stopAllActions();
+        m_ball->setPosition(m_ballStartPos);
+        m_ball->setRotation(0);
+        m_ball->setOpacity(255);
 
-// Cycle full array tree converting attributes back to visible defaults
-CCObject* itemObj = nullptr;
-int sequentialIndex = 1;
+        // Cycle full array tree converting attributes back to visible defaults
+        CCObject* itemObj = nullptr;
+        int sequentialIndex = 1;
 
-CCARRAY_FOREACH(m_pins, itemObj) {
-auto pin = draw_cast<CCSprite*>(itemObj);
-if (pin) {
-pin->stopAllActions();
-pin->setTag(sequentialIndex);
-pin->setOpacity(255);
-pin->setRotation(0);
+        CCARRAY_FOREACH(m_pins, itemObj) {
+            auto pin = draw_cast<CCSprite*>(itemObj);
+            if (pin) {
+                pin->stopAllActions();
+                pin->setTag(sequentialIndex);
+                pin->setOpacity(255);
+                pin->setRotation(0);
 
-// Recover layout properties saved inside custom pointer structures
-float originalX = static_cast(reinterpret_cast<uintptr_t>(pin->getUserData()));
-auto winSize = CCDirector::sharedDirector()->getWinSize();
+                // Recover layout properties saved inside custom pointer structures
+                float originalX = static_cast(reinterpret_cast<uintptr_t>(pin->getUserData()));
+                auto winSize = CCDirector::sharedDirector()->getWinSize();
 
-// Reposition using the internal column configurations
-float centerY = winSize.height / 2;
-float pinSpacingY = 40.0f;
+                // Reposition using the internal column configurations
+                float centerY = winSize.height / 2;
+                float pinSpacingY = 40.0f;
 
-// Reverse engineering column indices based on location
-int calculatedCol = static_cast((originalX - (winSize.width - 220)) / 35.0f);
-float columnStartY = centerY + (calculatedCol * pinSpacingY / 2.0f);
+                // Reverse engineering column indices based on location
+                int calculatedCol = static_cast((originalX - (winSize.width - 220)) / 35.0f);
+                float columnStartY = centerY + (calculatedCol * pinSpacingY / 2.0f);
 
-// Gather contextual offset identities
-int pinIndexInCol = 0;
-CCObject* internalScan = nullptr;
-CCARRAY_FOREACH(m_pins, internalScan) {
-auto pScan = draw_cast<CCSprite*>(internalScan);
-if(pScan && pScan != pin && pScan->getUserData() == pin->getUserData() && pScan->getTag() < pin->getTag()) {
-pinIndexInCol++;
-}
-}
+                // Gather contextual offset identities
+                int pinIndexInCol = 0;
+                CCObject* internalScan = nullptr;
+                CCARRAY_FOREACH(m_pins, internalScan) {
+                    auto pScan = draw_cast<CCSprite*>(internalScan);
+                    if(pScan && pScan != pin && pScan->getUserData() == pin->getUserData() && pScan->getTag() < pin->getTag()) {
+                        pinIndexInCol++;
+                    }
+                }
 
-float restoredY = columnStartY - (pinIndexInCol * pinSpacingY);
-pin->setPosition({originalX, restoredY});
-sequentialIndex++;
-}
-}
-}
+                float restoredY = columnStartY - (pinIndexInCol * pinSpacingY);
+                pin->setPosition({originalX, restoredY});
+                sequentialIndex++;
+            }
+        }
+    }
 
-// Clear tracking references out of heap scopes to avoid crash leaks
-~CosmicAlleyLayer() override {
-CC_SAFE_RELEASE(m_pins);
-}
+    // Clear tracking references out of heap scopes to avoid crash leaks
+    ~CosmicAlleyLayer() override {
+        CC_SAFE_RELEASE(m_pins);
+    }
 };
 
 // ==========================================
 // 3. MAIN GEOMETRY DASH MEMU LAYER INJECTION
 // ==========================================
+// aka hooking MenuLayer, also what is "memu layer" -xblaze
 
 class $modify(MyMenuLayer, MenuLayer) {
-bool init() {
-if (!MenuLayer::init()) return false;
+    bool init() {
+        if (!MenuLayer::init()) return false;
 
-// Safely extract main UI menu structure arrays from memory trees
-auto menu = this->getChildByID("main-menu");
-if (!menu) return true;
+        // Safely extract main UI menu structure arrays from memory trees
+        // you're just getting the address to where the menu is in memory -xblaze
+        auto menu = this->getChildByID("main-menu");
+        if (!menu) return true;
 
-// Custom main menu entry button instance setup configuration
-auto btnSprite = CCSprite::createWithSpriteFrameName("GJ_playBtn_001.png");
-if (btnSprite) {
-btnSprite->setScale(0.45f);
-btnSprite->setColor({0, 240, 255}); // Stylize launcher to match cyan colors
+        // Custom main menu entry button instance setup configuration
+        auto btnSprite = CCSprite::createWithSpriteFrameName("GJ_playBtn_001.png");
+        if (btnSprite) {
+            btnSprite->setScale(0.45f);
+            btnSprite->setColor({0, 240, 255}); // Stylize launcher to match cyan colors
 
-auto btn = CCMenuItemSpriteExtra::create(
-btnSprite,
-this,
-menu_selector(MyMenuLayer::onCosmicAlleyClick)
-);
+            auto btn = CCMenuItemSpriteExtra::create(
+                btnSprite,
+                this,
+                menu_selector(MyMenuLayer::onCosmicAlleyClick)
+            );
 
-// Safely push layout injection items into Geometry Dash nodes
-if (btn) {
-btn->setID("cosmic-alley-launcher");
-menu->addChild(btn);
-menu->updateLayout();
-}
-}
+            // Safely push layout injection items into Geometry Dash nodes
+            // "injection items" -xblaze
+            if (btn) {
+                btn->setID("cosmic-alley-launcher");
+                menu->addChild(btn);
+                menu->updateLayout();
+            }
+        }
+        return true;
+    }
 
-return true;
-}
+    // Direct scene navigation routing logic
+    // aka callback to when the button gets clicked
+    void onCosmicAlleyClick(CCObject* sender) {
+        // Trigger default menu navigation sound profile ticks
+        FMODAudioEngine::sharedEngine()->playEffect("GJ_select_01.ogg", 1.0f, 0.0f, 1.0f);
 
-// Direct scene navigation routing logic
-void onCosmicAlleyClick(CCObject* sender) {
-// Trigger default menu navigation sound profile ticks
-FMODAudioEngine::sharedEngine()->playEffect("GJ_select_01.ogg", 1.0f, 0.0f, 1.0f);
+        auto scene = CCScene::create();
+        auto layer = CosmicAlleyLayer::create();
 
-auto scene = CCScene::create();
-auto layer = CosmicAlleyLayer::create();
-
-if (scene && layer) {
-scene->addChild(layer);
-// Push scene via a sleek 0.5-second crossfade transition animation
-CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, scene));
-}
-}
+        if (scene && layer) {
+            scene->addChild(layer);
+            // Push scene via a sleek 0.5-second crossfade transition animation
+            CCDirector::sharedDirector()->pushScene(CCTransitionFade::create(0.5f, scene));
+        }
+    }
 };
 
 
