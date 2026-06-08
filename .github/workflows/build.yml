@@ -28,54 +28,18 @@ jobs:
       - name: Build the mod
         uses: geode-sdk/build-geode-mod@main
         with:
+          combine: true
           target: ${{ matrix.config.target }}
 
-      # FIX 1: Double asterisks ensure it catches the file wherever the compiler dropped it
-      - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: geode-build-${{ matrix.config.name }}
-          path: "**/*.geode"
-
-  combine:
-    name: Combine builds
+  package:
+    name: Package builds
     runs-on: ubuntu-latest
     needs: ['build']
     steps:
-      - uses: actions/checkout@v4
-      
-      # FIX 2: Added defensive warning checks to monitor the storage stream
-      - name: Download All Platform Artifacts
-        uses: actions/download-artifact@v4
-        with:
-          pattern: geode-build-*
-          path: artifacts
-
-      # FIX 3: Fully utilizes your directory scanning script to ensure it never crashes
-      - name: Organize artifacts
-        run: |
-          mkdir -p out
-          echo "=== Scanning Downloaded Artifacts ==="
-          if [ -d "artifacts" ]; then
-            find artifacts -type f
-            echo "=== Copying packages to merging directory ==="
-            find artifacts -name "*.geode" -exec cp {} out/ \;
-          else
-            echo "artifacts directory not found, checking current directory..."
-            ls -la
-            find . -maxdepth 2 -name "*.geode" -exec cp {} out/ \;
-          fi
-          echo "=== Verifying Target Directory Contents ==="
-          ls -la out/
-
-      # Only execute if the out/ folder successfully processed packages
       - uses: geode-sdk/build-geode-mod/combine@main
         id: build
-        with:
-          build-folder: out
 
-      - name: Upload Combined Package
-        uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v4
         with:
           name: Cosmic-Bowling-Lounge-Mod
           path: ${{ steps.build.outputs.build-output }}
