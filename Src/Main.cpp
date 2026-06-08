@@ -90,7 +90,7 @@ class $modify(CosmicBowlingManager, PlayLayer) {
             if (currentLoungePlayers > 8) {
                 auto alert = FLAlertLayer::create("Lounge Full", "This cosmic bowling lane is limited to 8 players!", "Okey");
                 alert->show();
-                this->onQuit(nullptr); 
+                this->onQuit(); // FIX: Removed 'nullptr' argument to match Geode v5 signature
                 return false;
             }
         }
@@ -105,9 +105,9 @@ class $modify(CosmicBowlingManager, PlayLayer) {
 
         CCRect playerBox = player->boundingBox();
         auto* objects = m_objects;
-        CCObject* obj;
         
-        CCARRAY_FOREACH(objects, obj) {
+        // FIX: Replaced legacy CCARRAY_FOREACH macro with modern CCArrayExt iteration
+        for (auto obj : CCArrayExt<cocos2d::CCObject*>(objects)) {
             auto* currentPin = dynamic_cast<BowlingPin*>(obj);
             if (currentPin && !currentPin->isKnockedOver) {
                 CCRect pinBox = currentPin->boundingBox();
@@ -140,3 +140,4 @@ void awardStrike() {
     auto* alert = FLAlertLayer::create("❌ STRIKE! ❌", "You cleared the deck in the Cosmic Lounge!", "Boom!");
     alert->show();
 }
+
