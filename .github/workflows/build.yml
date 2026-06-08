@@ -29,7 +29,17 @@ jobs:
         uses: geode-sdk/build-geode-mod@main
         with:
           target: ${{ matrix.config.target }}
-          combine: true # FIX 1: This automatically uploads everything under 'geode-build-artifacts'
+
+      # FIX 1: Upload each platform with its own unique matrix name to prevent conflicts
+      - name: Upload Build Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: geode-build-${{ matrix.config.name }}
+          path: |
+            build/**/*.geode
+            build/**/*.so
+            build/**/*.dll
+            *.geode
 
   combine:
     name: Combine builds
@@ -38,11 +48,12 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       
-      # FIX 2: Download the official group package that Geode created natively
-      - name: Download Geode Artifacts
+      # FIX 2: Download ALL platform files cleanly into the root using a pattern match
+      - name: Download All Platform Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: geode-build-artifacts
+          pattern: geode-build-*
+          merge-multiple: true
           path: .
 
       - uses: geode-sdk/build-geode-mod/combine@main
