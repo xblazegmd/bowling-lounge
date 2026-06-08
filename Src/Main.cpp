@@ -56,7 +56,7 @@ protected:
         // ==========================================
 
         // Cosmic Alley Background Vector Setup (Z-Order 0)
-        auto bg = CCSprite::createWithSpriteFrameName("yourname.bowling_mod/alley_bg.png");
+        auto bg = CCSprite::createWithSpriteFrameName("alley_bg.png"_spr);
         if (bg) {
             bg->setPosition({winSize.width / 2, winSize.height / 2});
             bg->setScaleX(winSize.width / bg->getContentSize().width);
@@ -65,7 +65,7 @@ protected:
         }
 
         // Wooden Lane Floor Vector Setup (Z-Order 1)
-        auto lane = CCSprite::createWithSpriteFrameName("yourname.bowling_mod/alley_floor.png");
+        auto lane = CCSprite::createWithSpriteFrameName("alley_floor.png"_spr);
         if (lane) {
             lane->setPosition({winSize.width / 2, winSize.height / 2});
             lane->setRotation(90.0f); // Rotates horizontal to span the side-view lane
@@ -78,7 +78,7 @@ protected:
         }
 
         // Cyan Bowling Ball Vector Setup (Z-Order 2)
-        m_ball = CCSprite::createWithSpriteFrameName("yourname.bowling_mod/alley_ball.png");
+        m_ball = CCSprite::createWithSpriteFrameName("alley_ball.png"_spr);
         if (m_ball) {
             m_ball->setScale(0.35f);
             m_ball->setPosition(m_ballStartPos);
@@ -162,7 +162,7 @@ protected:
             float columnStartY = centerY + (col * pinSpacingY / 2.0f);
 
             for (int row = 0; row <= col; ++row) {
-                auto pin = CCSprite::createWithSpriteFrameName("yourname.bowling_mod/alley_pins.png");
+                auto pin = CCSprite::createWithSpriteFrameName("alley_pins.png"_spr);
                 if (pin) {
                     pin->setScale(0.35f); 
 
@@ -190,7 +190,9 @@ protected:
         auto winSize = CCDirector::sharedDirector()->getWinSize();
 
         // Trigger original Geometry Dash sound effect managers
-        FMODAudioEngine::sharedEngine()->playEffect("playTarget.ogg", 1.0f, 0.0f, 1.0f);
+        // will assume you mean "playSound_01" instead of "plaTarget"
+        // tell me if im wrong
+        FMODAudioEngine::sharedEngine()->playEffect("playSound_01.ogg", 1.0f, 0.0f, 1.0f);
 
         // Movement action maps spanning the full floor length out-of-bounds
         auto moveAction = CCMoveTo::create(1.5f, ccp(winSize.width + 120, winSize.height / 2));
@@ -204,7 +206,7 @@ protected:
 
     // Handles the screen transition sequence safely popping back out to GD menus
     void onExitToMenu(CCObject* sender) {
-        FMODAudioEngine::sharedEngine()->playEffect("quitSound.ogg", 1.0f, 0.0f, 1.0f);
+        FMODAudioEngine::sharedEngine()->playEffect("quitSound_01.ogg", 1.0f, 0.0f, 1.0f);
         CCDirector::sharedDirector()->popSceneWithTransition(0.5f, kPopTransitionFade);
     }
 
@@ -225,7 +227,7 @@ protected:
 
         CCObject* itemObj = nullptr;
         for (auto itemObj : CCArrayExt(m_pins)) {
-            auto pin = draw_cast<CCSprite*>(itemObj);
+            auto pin = typeinfo_cast<CCSprite*>(itemObj);
 
             // Filter configuration bypass flags (Tag ID 999 isolates down state)
             if (!pin || pin->getTag() == 999) continue;
@@ -238,7 +240,8 @@ protected:
                 m_pinsDownLabel->setString(fmt::format("PINS DOWN: {}", m_pinsDownCount).c_str());
 
                 // Trigger impactful crash impact sounds using original game asset libraries
-                FMODAudioEngine::sharedEngine()->playEffect("hitSpikes.ogg", 0.8f, 0.0f, 1.0f);
+                // I assume you mean "explode_11.ogg" instead of "hitSpikes.ogg" so I'll switch to that -xblaze
+                FMODAudioEngine::sharedEngine()->playEffect("explode_11.ogg", 0.8f, 0.0f, 1.0f);
 
                 // Advanced trajectory math algorithms
                 float randomAngle = angleDist(gen);
@@ -313,7 +316,7 @@ protected:
         int sequentialIndex = 1;
 
         for (auto itemObj : CCArrayExt(m_pins)) {
-            auto pin = draw_cast<CCSprite*>(itemObj);
+            auto pin = typeinfo_cast<CCSprite*>(itemObj);
             if (pin) {
                 pin->stopAllActions();
                 pin->setTag(sequentialIndex);
@@ -321,7 +324,7 @@ protected:
                 pin->setRotation(0);
 
                 // Recover layout properties saved inside custom pointer structures
-                float originalX = static_cast(reinterpret_cast<uintptr_t>(pin->getUserData()));
+                float originalX = reinterpret_cast<uintptr_t>(pin->getUserData());
                 auto winSize = CCDirector::sharedDirector()->getWinSize();
 
                 // Reposition using the internal column configurations
@@ -329,14 +332,14 @@ protected:
                 float pinSpacingY = 40.0f;
 
                 // Reverse engineering column indices based on location
-                int calculatedCol = static_cast((originalX - (winSize.width - 220)) / 35.0f);
+                int calculatedCol = (originalX - (winSize.width - 220)) / 35.0f;
                 float columnStartY = centerY + (calculatedCol * pinSpacingY / 2.0f);
 
                 // Gather contextual offset identities
                 int pinIndexInCol = 0;
                 CCObject* internalScan = nullptr;
                 for (auto internalScan : CCArrayExt(m_pins)) {
-                    auto pScan = draw_cast<CCSprite*>(internalScan);
+                    auto pScan = typeinfo_cast<CCSprite*>(internalScan);
                     if(pScan && pScan != pin && pScan->getUserData() == pin->getUserData() && pScan->getTag() < pin->getTag()) {
                         pinIndexInCol++;
                     }
@@ -396,6 +399,7 @@ class $modify(MyMenuLayer, MenuLayer) {
     // aka callback to when the button gets clicked
     void onCosmicAlleyClick(CCObject* sender) {
         // Trigger default menu navigation sound profile ticks
+        // idk what sound is this -xblaze
         FMODAudioEngine::sharedEngine()->playEffect("GJ_select_01.ogg", 1.0f, 0.0f, 1.0f);
 
         auto scene = CCScene::create();
